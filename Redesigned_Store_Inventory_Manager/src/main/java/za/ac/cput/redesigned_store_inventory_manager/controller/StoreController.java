@@ -18,24 +18,24 @@ public class StoreController {
             this.storeService=storeService;
     }
     @GetMapping("/getAll")
-    public List<Store> getStore(){
-        return storeService.getAll();
+    public List<Store> getAll(){
+        return storeService.findAll();
     }
     @PostMapping("/save")
     public void save(@RequestBody Store store){
-        storeService.create(store);
+        storeService.save(store);
     }
     @DeleteMapping("delete")
     public void delete(@RequestParam String StoreId){
-      storeService.delete(StoreId);
+      storeService.deleteById(StoreId);
     }
     @GetMapping("/read")
     public void read(@RequestParam String StoreId){
-        storeService.read(StoreId);
+        storeService.findById(StoreId);
     }
     @PutMapping("/update")
     public void update(Store store){
-        storeService.update(store);
+        storeService.save(store);
     }
 
 }

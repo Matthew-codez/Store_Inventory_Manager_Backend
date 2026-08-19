@@ -14,22 +14,22 @@ public class ProductController {
     }
 
     public List<Product>getProduct(){
-        return productService.getAll();
+        return productService.findAll();
     }
     @PostMapping("/save")
     public void create(@RequestBody Product product){
-        productService.create(product);
+        productService.save(product);
     }
     @GetMapping("/read")
     public void read(@RequestParam String productId){
-        productService.read(productId);
+        productService.findById(productId).orElse(null);
     }
     @PutMapping("/update")
     public void update(@RequestBody Product product){
-        productService.update(product);
+        productService.save(product);
     }
     @DeleteMapping("/delete")
     public void delete(@RequestParam String productId){
-        productService.delete(productId);
+        productService.deleteById(productId);
     }
 }
