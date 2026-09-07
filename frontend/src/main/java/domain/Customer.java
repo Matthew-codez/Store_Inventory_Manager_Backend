@@ -7,7 +7,7 @@ package domain;
  */
 
 public class Customer {
-    private Long customerId;
+    private String customerId;
     private String firstName;
     private String surname;
     private String email;
@@ -19,8 +19,8 @@ public class Customer {
 
     public Customer() {}
 
-    public Long getCustomerId() { return customerId; }
-    public void setCustomerId(Long customerId) { this.customerId = customerId; }
+    public String getCustomerId() { return customerId; }
+    public void setCustomerId(String customerId) { this.customerId = customerId; }
 
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }

@@ -18,7 +18,7 @@ public class InventoryGUI extends JFrame implements ActionListener {
     private JPanel pnlNorth, pnlCenter, pnlSouth;
     private JTable table;
     private DefaultTableModel tableModel;
-    private JButton btnAdd, btnDelete, btnRefresh, btnRegisterEmployee;
+    private JButton btnAdd, btnDelete, btnRefresh, btnRegisterEmployee, btnViewOrders;
     private JLabel lblTitle;
     private ClientApp client;
 
@@ -30,7 +30,7 @@ public class InventoryGUI extends JFrame implements ActionListener {
         pnlCenter = new JPanel();
         pnlSouth = new JPanel();
         tableModel = new DefaultTableModel(new Object[]{
-                "ID", "Product", "Category", "Supplier", "Qty", "Unit Price", "Location"
+                "ID", "Product ID", "Product Name", "Category", "Supplier", "Qty", "Unit Price", "Location"
         }, 0) {
             public boolean isCellEditable(int row, int col) { return false; }
         };
@@ -39,6 +39,7 @@ public class InventoryGUI extends JFrame implements ActionListener {
         btnDelete = new JButton("Delete");
         btnRefresh = new JButton("Refresh");
         btnRegisterEmployee = new JButton("Register New Employee");
+        btnViewOrders = new JButton("View Orders");
         lblTitle = new JLabel("Inventory Management");
     }
 
@@ -49,6 +50,7 @@ public class InventoryGUI extends JFrame implements ActionListener {
 
         pnlNorth.add(lblTitle);
         pnlNorth.add(btnRegisterEmployee);
+        pnlNorth.add(btnViewOrders);
         pnlCenter.add(new JScrollPane(table), BorderLayout.CENTER);
         pnlSouth.add(btnAdd);
         pnlSouth.add(btnDelete);
@@ -62,8 +64,9 @@ public class InventoryGUI extends JFrame implements ActionListener {
         btnDelete.addActionListener(this);
         btnRefresh.addActionListener(this);
         btnRegisterEmployee.addActionListener(this);
+        btnViewOrders.addActionListener(this);
 
-        this.setSize(800, 450);
+        this.setSize(900, 450);
         this.setVisible(true);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
@@ -83,6 +86,7 @@ public class InventoryGUI extends JFrame implements ActionListener {
                         tableModel.addRow(new Object[]{
                                 inv.getInventoryId(),
                                 inv.getProduct() != null ? inv.getProduct().getProductId() : "",
+                                inv.getProduct() != null ? inv.getProduct().getProductName() : "",
                                 inv.getCategory() != null ? inv.getCategory().getName() : "",
                                 inv.getSupplier() != null ? inv.getSupplier().getSupplierId() : "",
                                 inv.getQuantityInStock(),
@@ -125,6 +129,8 @@ public class InventoryGUI extends JFrame implements ActionListener {
 
         } else if (e.getSource() == btnRegisterEmployee) {
             new RegisterGUI(client).setGUI();
+        } else if (e.getSource() == btnViewOrders) {
+            new OrderGUI(client).setGUI();
         }
     }
 }

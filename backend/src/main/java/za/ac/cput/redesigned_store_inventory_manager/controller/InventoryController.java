@@ -5,6 +5,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import za.ac.cput.redesigned_store_inventory_manager.domain.Inventory;
+import za.ac.cput.redesigned_store_inventory_manager.domain.Product;
+import za.ac.cput.redesigned_store_inventory_manager.domain.Supplier;
+import za.ac.cput.redesigned_store_inventory_manager.repository.ProductRepository;
+import za.ac.cput.redesigned_store_inventory_manager.repository.SupplierRepository;
 import za.ac.cput.redesigned_store_inventory_manager.service.IInventoryService;
 
 import java.util.List;
@@ -19,10 +23,16 @@ Date: 18 July 2026*/
 @RequestMapping("/api/inventory")
 public class InventoryController {
     private final IInventoryService inventoryService;
+    private final ProductRepository productRepository;
+    private final SupplierRepository supplierRepository;
 
     @Autowired
-    public InventoryController(IInventoryService inventoryService) {
+    public InventoryController(IInventoryService inventoryService,
+                               ProductRepository productRepository,
+                               SupplierRepository supplierRepository) {
         this.inventoryService = inventoryService;
+        this.productRepository = productRepository;
+        this.supplierRepository = supplierRepository;
     }
 
     @GetMapping
@@ -39,11 +49,47 @@ public class InventoryController {
 
     @PostMapping
     public ResponseEntity<Inventory> createInventory(@RequestBody Inventory inventory) {
-        Inventory saved = inventoryService.save(inventory);
+        Inventory.Builder builder = new Inventory.Builder(inventory.getInventoryId())
+                .quantityInStock(inventory.getQuantityInStock())
+                .minimumStockLevel(inventory.getMinimumStockLevel())
+                .maximumStockLevel(inventory.getMaximumStockLevel())
+                .unitPrice(inventory.getUnitPrice())
+                .lastRestockedDate(inventory.getLastRestockedDate())
+                .location(inventory.getLocation())
+                .category(inventory.getCategory());
+
+        if (inventory.getSupplier() != null && inventory.getSupplier().getSupplierId() != null) {
+            Supplier resolvedSupplier = supplierRepository.findById(inventory.getSupplier().getSupplierId())
+                    .orElse(inventory.getSupplier());
+            builder.supplier(resolvedSupplier);
+        } else {
+            builder.supplier(inventory.getSupplier());
+        }
+
+        if (inventory.getProduct() != null && inventory.getProduct().getProductId() != null) {
+            Product resolvedProduct = productRepository.findById(inventory.getProduct().getProductId())
+                    .orElse(inventory.getProduct());
+            builder.product(resolvedProduct);
+        } else {
+            builder.product(inventory.getProduct());
+        }
+
+        Inventory resolvedInventory = builder.build();
+
+        Inventory saved = inventoryService.save(resolvedInventory);
         if (saved == null) {
             return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Inventory> updateInventory(@PathVariable Long id, @RequestBody Inventory inventory) {
+        if (!inventoryService.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        Inventory updated = inventoryService.save(inventory);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")

@@ -31,12 +31,6 @@ public class CustomerController {
         return ResponseEntity.ok(customers);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
-        Optional<Customer> customer = customerService.findById(id);
-        return customer.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
-    }
-
     @PostMapping
     public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
         Customer saved = customerService.save(customer);
@@ -46,8 +40,14 @@ public class CustomerController {
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Customer> getCustomerById(@PathVariable String id) {
+        Optional<Customer> customer = customerService.findById(id);
+        return customer.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteCustomer(@PathVariable String id) {
         if (!customerService.existsById(id)) {
             return ResponseEntity.notFound().build();
         }

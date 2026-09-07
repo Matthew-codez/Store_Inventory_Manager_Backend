@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import domain.Customer;
 import domain.Inventory;
 import domain.Order;
-import domain.Store;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -16,19 +15,10 @@ import java.util.List;
  *
  * @author Jayden Avontuur
  */
-
-/**
- * Matthew Ferreira
- * 230048870
- * Order/Customer
- */
-
 public class ClientApp {
 
     private static final String AUTH_URL = "http://localhost:8080/api/auth";
     private static final String INVENTORY_URL = "http://localhost:8080/api/inventory";
-    private static final String ORDER_URL = "http://localhost:8000/api/orders";
-    private static final String STORE_URL = "http://localhost:8080/api/stores";
 
     private final HttpClient httpClient;
     private final ObjectMapper mapper;
@@ -88,6 +78,14 @@ public class ClientApp {
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() == 500 && response.body().contains("Unique index or primary key violation")) {
+            throw new Exception("That Product ID already exists. Please use a different Product ID.");
+        }
+        if (response.statusCode() != 200 && response.statusCode() != 201) {
+            throw new Exception("Failed to add inventory item (server returned " + response.statusCode() + ").");
+        }
+
         return mapper.readValue(response.body(), Inventory.class);
     }
 
@@ -119,6 +117,80 @@ public class ClientApp {
         }
     }
 
+    private static final String CUSTOMER_AUTH_URL = "http://localhost:8080/api/customer-auth";
+    private static final String ORDER_URL = "http://localhost:8080/api/orders";
+
+    public boolean authenticateCustomer(String username, String password) {
+        try {
+            String json = mapper.writeValueAsString(new LoginRequest(username, password));
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(CUSTOMER_AUTH_URL + "/login"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+            return httpClient.send(request, HttpResponse.BodyHandlers.ofString()).statusCode() == 200;
+        } catch (Exception e) { e.printStackTrace(); return false; }
+    }
+
+    public boolean registerCustomer(String firstName, String surname, String email, String username, String password) {
+        try {
+            String json = String.format(
+                    "{\"firstName\":\"%s\",\"surname\":\"%s\",\"email\":\"%s\",\"username\":\"%s\",\"password\":\"%s\"}",
+                    firstName, surname, email, username, password);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(CUSTOMER_AUTH_URL + "/register"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+            int code = httpClient.send(request, HttpResponse.BodyHandlers.ofString()).statusCode();
+            return code == 200 || code == 201;
+        } catch (Exception e) { e.printStackTrace(); return false; }
+    }
+
+    private static final String PURCHASE_URL = "http://localhost:8080/api/purchase";
+
+    public boolean purchase(String customerUsername, Long inventoryId, int quantity) throws Exception {
+        String json = String.format(
+                "{\"customerId\":\"%s\",\"inventoryId\":%d,\"quantity\":%d}",
+                customerUsername, inventoryId, quantity);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(PURCHASE_URL))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        return response.statusCode() == 200;
+    }
+
+    public Customer createCustomer(Customer customer) throws Exception {
+        String json = mapper.writeValueAsString(customer);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/customers"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        return mapper.readValue(response.body(), Customer.class);
+    }
+
+    public List<Customer> getAllCustomers() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/customers"))
+                .GET()
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        return mapper.readValue(response.body(),
+                mapper.getTypeFactory().constructCollectionType(List.class, Customer.class));
+    }
+
+    public void deleteCustomer(String id) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/customers/" + id))
+                .DELETE()
+                .build();
+        httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+    }
+
     public List<Order> getAllOrders() throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(ORDER_URL))
@@ -126,7 +198,7 @@ public class ClientApp {
                 .build();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         return mapper.readValue(response.body(),
-        mapper.getTypeFactory().constructCollectionType(List.class, Order.class));
+                mapper.getTypeFactory().constructCollectionType(List.class, Order.class));
     }
 
     public Order createOrder(Order order) throws Exception {
@@ -138,123 +210,15 @@ public class ClientApp {
                 .build();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         return mapper.readValue(response.body(), Order.class);
-        }
+    }
 
-    public void deleteOrder(String orderNum) throws Exception{
+    public void deleteOrder(String orderNum) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(ORDER_URL + "/" + orderNum))
                 .DELETE()
                 .build();
         httpClient.send(request, HttpResponse.BodyHandlers.discarding());
     }
-
-    private static final String CUSTOMER_URL = "http://localhost:8080/api/customers";
-
-    public List<Customer> getAllCustomers() throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(CUSTOMER_URL))
-                .GET()
-                .build();
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        return mapper.readValue(response.body(),
-                mapper.getTypeFactory().constructCollectionType(List.class, Customer.class));
-    }
-
-    public Customer createCustomer(Customer customer) throws Exception {
-        String json = mapper.writeValueAsString(customer);
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(CUSTOMER_URL))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        return mapper.readValue(response.body(), Customer.class);
-    }
-
-    public void deleteCustomer(Long id) throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(CUSTOMER_URL + "/" + id))
-                .DELETE()
-                .build();
-        httpClient.send(request, HttpResponse.BodyHandlers.discarding());
-    }
-    public List<Store> getAllStores() throws Exception {
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(STORE_URL))
-                .GET()
-                .build();
-
-        HttpResponse<String> response =
-                httpClient.send(
-                        request,
-                        HttpResponse.BodyHandlers.ofString()
-                );
-
-        return mapper.readValue(
-                response.body(),
-                mapper.getTypeFactory().constructCollectionType(
-                        List.class,
-                        Store.class
-                )
-        );
-    }
-        public Store createStore(Store store) throws Exception {
-
-            String json = mapper.writeValueAsString(store);
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(STORE_URL))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(json))
-                    .build();
-
-            HttpResponse<String> response =
-                    httpClient.send(
-                            request,
-                            HttpResponse.BodyHandlers.ofString()
-                    );
-
-            return mapper.readValue(
-                    response.body(),
-                    Store.class
-            );
-        }
-    public void deleteStore(String id) throws Exception {
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(STORE_URL + "/" + id))
-                .DELETE()
-                .build();
-
-        httpClient.send(
-                request,
-                HttpResponse.BodyHandlers.discarding()
-        );
-    }
-    public Store updateStore(String id, Store store) throws Exception {
-
-        String json = mapper.writeValueAsString(store);
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(STORE_URL + "/" + id))
-                .header("Content-Type", "application/json")
-                .PUT(HttpRequest.BodyPublishers.ofString(json))
-                .build();
-
-        HttpResponse<String> response =
-                httpClient.send(
-                        request,
-                        HttpResponse.BodyHandlers.ofString()
-                );
-
-        return mapper.readValue(
-                response.body(),
-                Store.class
-        );
-    }
-
-
 
     public static void main(String[] args) {
         ClientApp client = new ClientApp();

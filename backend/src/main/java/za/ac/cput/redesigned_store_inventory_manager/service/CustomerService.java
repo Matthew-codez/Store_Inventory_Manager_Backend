@@ -27,7 +27,7 @@ public class CustomerService implements ICustomerService {
     }
 
     @Override
-    public Optional<Customer> findById(Long id) {
+    public Optional<Customer> findById(String id) {
         if (id == null) return Optional.empty();
         return customerRepository.findById(id);
     }
@@ -38,13 +38,13 @@ public class CustomerService implements ICustomerService {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteById(String id) {
         if (id == null) return;
         customerRepository.deleteById(id);
     }
 
     @Override
-    public boolean existsById(Long id) {
+    public boolean existsById(String id) {
         if (id == null) return false;
         return customerRepository.existsById(id);
     }

@@ -7,6 +7,5 @@ Date: 12 July 2026*/
 
 import za.ac.cput.redesigned_store_inventory_manager.domain.Customer;
 
-public interface
-ICustomerService extends IService<Customer, Long> {
+public interface ICustomerService extends IService<Customer, String> {
 }

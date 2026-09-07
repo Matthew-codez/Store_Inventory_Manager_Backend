@@ -36,7 +36,7 @@ public class SupplierController {
     }
 
     @GetMapping("/read")
-    public Supplier read(@RequestParam Long id) {
+    public Supplier read(@RequestParam String id) {
         return supplierService.findById(id).orElse(null);
     }
 
@@ -46,7 +46,7 @@ public class SupplierController {
     }
 
     @DeleteMapping("/delete")
-    public void delete(@RequestParam Long id) {
+    public void delete(@RequestParam String id) {
         supplierService.deleteById(id);
     }
 }

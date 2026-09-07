@@ -118,7 +118,7 @@ public class CustomerGUI extends JFrame implements ActionListener {
 
             new SwingWorker<Void, Void>() {
                 protected Void doInBackground() throws Exception {
-                    client.deleteCustomer(id);
+                    client.deleteCustomer(String.valueOf(id));
                     return null;
                 }
                 protected void done() { loadCustomers(); }

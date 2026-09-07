@@ -30,7 +30,7 @@ public class SupplierService implements ISupplierService {
     }
 
     @Override
-    public Optional<Supplier> findById(Long id) {
+    public Optional<Supplier> findById(String id) {
         if (id == null) return Optional.empty();
         return supplierRepository.findById(id);
     }
@@ -41,13 +41,13 @@ public class SupplierService implements ISupplierService {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteById(String id) {
         if (id == null) return;
         supplierRepository.deleteById(id);
     }
 
     @Override
-    public boolean existsById(Long id) {
+    public boolean existsById(String id) {
         if (id == null) return false;
         return supplierRepository.existsById(id);
     }

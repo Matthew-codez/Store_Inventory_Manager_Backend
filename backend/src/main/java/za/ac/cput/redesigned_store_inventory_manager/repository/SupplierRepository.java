@@ -12,5 +12,5 @@ import org.springframework.stereotype.Repository;
 import za.ac.cput.redesigned_store_inventory_manager.domain.Supplier;
 
 @Repository
-public interface SupplierRepository extends JpaRepository<Supplier, Long> {
+public interface SupplierRepository extends JpaRepository<Supplier, String> {
 }

@@ -7,8 +7,10 @@ Date: 21 March 2026*/
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
+@Table(name = "Orders")
 public class Order {
     @Id
     private String orderNum;
@@ -18,6 +20,7 @@ public class Order {
     private double totalAmount;
     private String status;
     private String item;
+    private int quantity;
 
     protected Order() {}
 
@@ -49,6 +52,10 @@ public class Order {
         return item;
     }
 
+    public int getQuantity() {
+        return quantity;
+    }
+
     private Order(Builder builder) {
         this.orderNum = builder.orderNum;
         this.customerId = builder.customerId;
@@ -57,6 +64,7 @@ public class Order {
         this.totalAmount = builder.totalAmount;
         this.status = builder.status;
         this.item = builder.item;
+        this.quantity = builder.quantity;
     }
 
     public static class Builder {
@@ -67,6 +75,7 @@ public class Order {
         private double totalAmount;
         private String status;
         private String item;
+        private int quantity;
 
         public Builder setOrderNum(String orderNum) {
             this.orderNum = orderNum;
@@ -103,6 +112,11 @@ public class Order {
             return this;
         }
 
+        public Builder setQuantity(int quantity) {
+            this.quantity = quantity;
+            return this;
+        }
+
         public Builder copy(Order order) {
             this.orderNum = order.getOrderNum();
             this.customerId = order.getCustomerId();
@@ -111,6 +125,7 @@ public class Order {
             this.totalAmount = order.getTotalAmount();
             this.status = order.getStatus();
             this.item = order.getItem();
+            this.quantity = order.getQuantity();
             return this;
         }
 

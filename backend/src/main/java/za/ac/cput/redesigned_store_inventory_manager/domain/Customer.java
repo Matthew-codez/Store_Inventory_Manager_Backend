@@ -6,15 +6,12 @@ Author: Matthew Ferreira (230048870)
 Date: 21 June 2026*/
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
 public class Customer {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long customerId;
+    private String customerId;
     private String firstName;
     private String surname;
     private String email;
@@ -23,10 +20,12 @@ public class Customer {
     private String city;
     private String postalCode;
     private String country;
+    private String username;
+    private String password;
 
     protected Customer() {}
 
-    public Long getCustomerId() {
+    public String getCustomerId() {
         return customerId;
     }
 
@@ -62,7 +61,10 @@ public class Customer {
         return country;
     }
 
-    private Customer(Builder builder) {
+    public String getUsername() { return username; }
+    public String getPassword() { return password; }
+
+    private Customer (Builder builder){
         this.customerId = builder.customerId;
         this.firstName = builder.firstName;
         this.surname = builder.surname;
@@ -72,10 +74,12 @@ public class Customer {
         this.city = builder.city;
         this.postalCode = builder.postalCode;
         this.country = builder.country;
+        this.username = builder.username;
+        this.password = builder.password;
     }
 
-    public static class Builder {
-        private Long customerId;
+    public static class Builder{
+        private String customerId;
         private String firstName;
         private String surname;
         private String email;
@@ -84,8 +88,10 @@ public class Customer {
         private String city;
         private String postalCode;
         private String country;
+        private String username;
+        private String password;
 
-        public Builder setCustomerId(Long customerId) {
+        public Builder setCustomerId(String customerId) {
             this.customerId = customerId;
             return this;
         }
@@ -130,7 +136,17 @@ public class Customer {
             return this;
         }
 
-        public Builder copy(Customer customer) {
+        public Builder setUsername(String username){
+            this.username = username;
+            return this;
+        }
+
+        public Builder setPassword(String password){
+            this.password = password;
+            return this;
+        }
+
+        public Builder copy(Customer customer){
             this.customerId = customer.getCustomerId();
             this.firstName = customer.getFirstName();
             this.surname = customer.getSurname();
@@ -140,11 +156,14 @@ public class Customer {
             this.city = customer.getCity();
             this.postalCode = customer.getPostalCode();
             this.country = customer.getCountry();
+            this.username = customer.getUsername();
+            this.password = customer.getPassword();
             return this;
         }
 
-        public Customer build() {
+        public Customer build(){
             return new Customer(this);
         }
     }
+
 }

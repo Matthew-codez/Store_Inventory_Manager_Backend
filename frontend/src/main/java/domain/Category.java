@@ -1,10 +1,14 @@
 package domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Category {
     private String name;
     private String description;
 
     public Category() {}
+
     public Category(String name, String description) {
         this.name = name;
         this.description = description;

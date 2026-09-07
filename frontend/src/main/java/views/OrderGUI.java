@@ -1,11 +1,5 @@
 package views;
 
-/**
- * Matthew Ferreira
- * 230048870
- *
- */
-
 import domain.Order;
 
 import javax.swing.*;
@@ -20,27 +14,25 @@ public class OrderGUI extends JFrame implements ActionListener {
     private JPanel pnlNorth, pnlCenter, pnlSouth;
     private JTable table;
     private DefaultTableModel tableModel;
-    private JButton btnAdd, btnDelete, btnRefresh;
+    private JButton btnRefresh;
     private JLabel lblTitle;
     private ClientApp client;
 
     public OrderGUI(ClientApp client) {
-        super("Store Inventory Manager - Orders");
+        super("Store Inventory Manager - Order History");
         this.client = client;
 
         pnlNorth = new JPanel();
         pnlCenter = new JPanel();
         pnlSouth = new JPanel();
         tableModel = new DefaultTableModel(new Object[]{
-                "Order Num", "Order Date", "Delivery Date", "Total Amount", "Status", "Item"
+                "Order Num", "Customer", "Item (Product ID)", "Quantity", "Total Amount", "Order Date", "Status"
         }, 0) {
             public boolean isCellEditable(int row, int col) { return false; }
         };
         table = new JTable(tableModel);
-        btnAdd = new JButton("Add");
-        btnDelete = new JButton("Delete");
         btnRefresh = new JButton("Refresh");
-        lblTitle = new JLabel("Order Management");
+        lblTitle = new JLabel("Order History");
     }
 
     public void setGUI() {
@@ -50,16 +42,12 @@ public class OrderGUI extends JFrame implements ActionListener {
 
         pnlNorth.add(lblTitle);
         pnlCenter.add(new JScrollPane(table), BorderLayout.CENTER);
-        pnlSouth.add(btnAdd);
-        pnlSouth.add(btnDelete);
         pnlSouth.add(btnRefresh);
 
         this.add(pnlNorth, BorderLayout.NORTH);
         this.add(pnlCenter, BorderLayout.CENTER);
         this.add(pnlSouth, BorderLayout.SOUTH);
 
-        btnAdd.addActionListener(this);
-        btnDelete.addActionListener(this);
         btnRefresh.addActionListener(this);
 
         this.setSize(800, 450);
@@ -81,11 +69,12 @@ public class OrderGUI extends JFrame implements ActionListener {
                     for (Order o : get()) {
                         tableModel.addRow(new Object[]{
                                 o.getOrderNum(),
-                                o.getOrderDate(),
-                                o.getDeliveryDate(),
+                                o.getCustomerId(),
+                                o.getItem(),
+                                o.getQuantity(),
                                 o.getTotalAmount(),
-                                o.getStatus(),
-                                o.getItem()
+                                o.getOrderDate(),
+                                o.getStatus()
                         });
                     }
                 } catch (Exception ex) {
@@ -99,27 +88,6 @@ public class OrderGUI extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == btnRefresh) {
             loadOrders();
-
-        } else if (e.getSource() == btnAdd) {
-            new OrderFormDialog(this, client, this::loadOrders).setVisible(true);
-
-        } else if (e.getSource() == btnDelete) {
-            int row = table.getSelectedRow();
-            if (row == -1) {
-                JOptionPane.showMessageDialog(this, "Select a row first.");
-                return;
-            }
-            String orderNum = (String) tableModel.getValueAt(row, 0);
-            int confirm = JOptionPane.showConfirmDialog(this, "Delete this order?", "Confirm", JOptionPane.YES_NO_OPTION);
-            if (confirm != JOptionPane.YES_OPTION) return;
-
-            new SwingWorker<Void, Void>() {
-                protected Void doInBackground() throws Exception {
-                    client.deleteOrder(orderNum);
-                    return null;
-                }
-                protected void done() { loadOrders(); }
-            }.execute();
         }
     }
 }

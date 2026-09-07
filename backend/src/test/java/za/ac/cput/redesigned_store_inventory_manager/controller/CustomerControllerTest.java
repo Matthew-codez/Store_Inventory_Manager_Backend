@@ -61,9 +61,9 @@ public class CustomerControllerTest {
 
     @Test
     public void getCustomerByIdFoundTest() {
-        when(customerService.findById(1L)).thenReturn(Optional.of(customer));
+        when(customerService.findById("CUST001")).thenReturn(Optional.of(customer));
 
-        ResponseEntity<Customer> response = customerController.getCustomerById(1L);
+        ResponseEntity<Customer> response = customerController.getCustomerById("CUST001");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("CUST001", response.getBody().getCustomerId());
@@ -71,9 +71,9 @@ public class CustomerControllerTest {
 
     @Test
     public void getCustomerByIdNotFoundTest() {
-        when(customerService.findById(99L)).thenReturn(Optional.empty());
+        when(customerService.findById("CUST099")).thenReturn(Optional.empty());
 
-        ResponseEntity<Customer> response = customerController.getCustomerById(99L);
+        ResponseEntity<Customer> response = customerController.getCustomerById("CUST099");
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNull(response.getBody());
@@ -101,21 +101,21 @@ public class CustomerControllerTest {
 
     @Test
     public void deleteCustomerExistsTest() {
-        when(customerService.existsById(1L)).thenReturn(true);
+        when(customerService.existsById("CUST001")).thenReturn(true);
 
-        ResponseEntity<Void> response = customerController.deleteCustomer(1L);
+        ResponseEntity<Void> response = customerController.deleteCustomer("CUST001");
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(customerService, times(1)).deleteById(1L);
+        verify(customerService, times(1)).deleteById("CUST001");
     }
 
     @Test
     public void deleteCustomerNotFoundTest() {
-        when(customerService.existsById(99L)).thenReturn(false);
+        when(customerService.existsById("CUST099")).thenReturn(false);
 
-        ResponseEntity<Void> response = customerController.deleteCustomer(99L);
+        ResponseEntity<Void> response = customerController.deleteCustomer("CUST099");
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(customerService, never()).deleteById(anyLong());
+        verify(customerService, never()).deleteById(anyString());
     }
 }
