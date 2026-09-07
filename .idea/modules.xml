@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/ADP.iml" filepath="$PROJECT_DIR$/.idea/ADP.iml" />
-      <module fileurl="file://$PROJECT_DIR$/Redesigned_Store_Inventory_Manager/Redesigned_Store_Inventory_Manager.iml" filepath="$PROJECT_DIR$/Redesigned_Store_Inventory_Manager/Redesigned_Store_Inventory_Manager.iml" />
     </modules>
   </component>
 </project>
