@@ -1,10 +1,10 @@
 package views;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import domain.Customer;
-import domain.Inventory;
-import domain.Order;
+import domain.*;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -95,6 +95,35 @@ public class ClientApp {
                 .DELETE()
                 .build();
         httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+    }
+
+    public List<Store> getAllStores() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/stores"))
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        return mapper.readValue(
+                response.body(),
+                mapper.getTypeFactory().constructCollectionType(List.class, Store.class)
+        );
+    }
+    public List<Product> getAllProducts() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/products"))
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        return mapper.readValue(
+                response.body(),
+                mapper.getTypeFactory().constructCollectionType(List.class, Product.class)
+        );
     }
 
     private static class LoginRequest {
