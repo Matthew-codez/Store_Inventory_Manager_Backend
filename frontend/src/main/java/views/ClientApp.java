@@ -253,4 +253,96 @@ public class ClientApp {
         ClientApp client = new ClientApp();
         new LoginGUI(client).setGUI();
     }
+
+    public List<Supplier> getAllSuppliers() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/v1/supplier/getAll"))
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        return mapper.readValue(
+                response.body(),
+                mapper.getTypeFactory().constructCollectionType(List.class, Supplier.class)
+        );
+    }
+
+    public Supplier createSupplier(Supplier supplier) throws Exception {
+        String json = mapper.writeValueAsString(supplier);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/v1/supplier/save"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200 && response.statusCode() != 201) {
+            throw new Exception("Failed to add supplier. Server returned "
+                    + response.statusCode());
+        }
+
+        return mapper.readValue(response.body(), Supplier.class);
+    }
+
+    public void deleteSupplier(String id) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(
+                        "http://localhost:8080/api/v1/supplier/delete?SupplierId="
+                                + id))
+                .DELETE()
+                .build();
+
+        httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+    }
+
+    public List<Employee> getAllEmployees() throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/v1/employee/getAll"))
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        return mapper.readValue(
+                response.body(),
+                mapper.getTypeFactory().constructCollectionType(List.class, Employee.class)
+        );
+    }
+
+    public Employee createEmployee(Employee employee) throws Exception {
+        String json = mapper.writeValueAsString(employee);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/v1/employee/save"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200 && response.statusCode() != 201) {
+            throw new Exception("Failed to add employee. Server returned "
+                    + response.statusCode());
+        }
+
+        return mapper.readValue(response.body(), Employee.class);
+    }
+
+    public void deleteEmployee(String id) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(
+                        "http://localhost:8080/api/v1/employee/delete?StoreId="
+                                + id))
+                .DELETE()
+                .build();
+
+        httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+    }
 }
