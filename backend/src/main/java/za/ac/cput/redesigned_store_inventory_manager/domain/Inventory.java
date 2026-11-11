@@ -17,9 +17,11 @@ public class Inventory {
     private Long inventoryId;
 
     @ManyToOne
+    @JoinColumn(name = "PRODUCT_ID")
     private Product product;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinColumn(name = "SUPPLIER_ID")
     private Supplier supplier;
 
     private int quantityInStock;
