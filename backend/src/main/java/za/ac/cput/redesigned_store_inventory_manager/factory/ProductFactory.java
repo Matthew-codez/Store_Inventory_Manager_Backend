@@ -10,6 +10,10 @@ import za.ac.cput.redesigned_store_inventory_manager.domain.Product;
 
 public class ProductFactory {
     public static Product createProduct(String productId, String productName) {
+        return createProduct(productId, productName, null);
+    }
+
+    public static Product createProduct(String productId, String productName, String category) {
 
         if (productId == null || productId.isBlank())
             return null;
@@ -20,6 +24,7 @@ public class ProductFactory {
         return new Product.Builder()
                 .setProductId(productId)
                 .setProductName(productName)
+                .setCategory(category)
                 .build();
     }
 }

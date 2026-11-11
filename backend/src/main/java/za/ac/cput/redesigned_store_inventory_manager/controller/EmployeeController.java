@@ -8,6 +8,7 @@ package za.ac.cput.redesigned_store_inventory_manager.controller;
 */
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -66,7 +67,7 @@ public class EmployeeController {
         }
         if (employeeRepository.findByUsername(username).isPresent()
                 || customerRepository.findByUsername(username).isPresent()) {
-            return ResponseEntity.status(409).body("Username already exists");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
         }
 
         String employeeId = clean(employee.getEmployeeId());
@@ -79,7 +80,7 @@ public class EmployeeController {
                 .setUsername(username)
                 .setPassword(passwordEncoder.encode(password))
                 .build();
-        return ResponseEntity.status(201).body(employeeService.save(toSave));
+        return ResponseEntity.status(HttpStatus.CREATED).body(employeeService.save(toSave));
     }
 
     @GetMapping("/read")
@@ -105,10 +106,10 @@ public class EmployeeController {
     public ResponseEntity<String> delete(@RequestParam Long id, Authentication authentication) {
         Employee existing = employeeService.findById(id).orElse(null);
         if (existing == null) {
-            return ResponseEntity.status(404).body("Employee not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Employee not found");
         }
         if (existing.getUsername() != null && existing.getUsername().equals(authentication.getName())) {
-            return ResponseEntity.status(409).body("You can't delete the account you are logged in with.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("You can't delete the account you are logged in with.");
         }
         employeeService.deleteById(id);
         return ResponseEntity.noContent().build();

@@ -4,8 +4,10 @@ import domain.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class InventoryFormDialog extends JDialog {
+public class InventoryFormDialog extends JDialog implements ActionListener {
 
     private JTextField txtProductId, txtProductName, txtSupplierId,
             txtCategoryName, txtQuantity, txtUnitPrice, txtLocation;
@@ -94,8 +96,9 @@ public class InventoryFormDialog extends JDialog {
             txtSupplierId.setText(existing.getSupplier() != null
                     ? existing.getSupplier().getSupplierId() : "");
 
-            txtCategoryName.setText(existing.getCategory() != null
-                    ? existing.getCategory().getName() : "");
+            txtCategoryName.setText(existing.getProduct() != null
+                    && existing.getProduct().getCategory() != null
+                    ? existing.getProduct().getCategory() : "");
 
             txtQuantity.setText(
                     String.valueOf(existing.getQuantityInStock()));
@@ -114,8 +117,17 @@ public class InventoryFormDialog extends JDialog {
         setSize(420, 340);
         setLocationRelativeTo(parent);
 
-        btnSave.addActionListener(e -> save());
-        btnCancel.addActionListener(e -> dispose());
+        btnSave.addActionListener(this);
+        btnCancel.addActionListener(this);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == btnSave) {
+            save();
+        } else if (e.getSource() == btnCancel) {
+            dispose();
+        }
     }
 
     private void save() {
@@ -155,16 +167,14 @@ public class InventoryFormDialog extends JDialog {
             Product product = new Product();
             product.setProductId(productId);
             product.setProductName(productName);
+            product.setCategory(categoryName);   // the category is saved on the Product
 
             Supplier supplier = new Supplier();
             supplier.setSupplierId(supplierId);
 
-            Category category = new Category(categoryName, "");
-
             Inventory inventory = new Inventory();
             inventory.setProduct(product);
             inventory.setSupplier(supplier);
-            inventory.setCategory(category);
             inventory.setQuantityInStock(quantity);
             inventory.setUnitPrice(price);
             inventory.setLocation(location);

@@ -1,6 +1,7 @@
 package za.ac.cput.redesigned_store_inventory_manager.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -50,7 +51,7 @@ public class CustomerAuthController {
         }
         if (customerRepository.findByUsername(username).isPresent()
                 || employeeRepository.findByUsername(username).isPresent()) {
-            return ResponseEntity.status(409).body("Username already exists");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
         }
         Customer customer = new Customer.Builder()
                 .setCustomerId(UUID.randomUUID().toString())
@@ -61,7 +62,7 @@ public class CustomerAuthController {
                 .setPassword(passwordEncoder.encode(request.password))
                 .build();
         customerRepository.save(customer);
-        return ResponseEntity.status(201).body("Registered successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body("Registered successfully");
     }
 
     @PostMapping("/login")

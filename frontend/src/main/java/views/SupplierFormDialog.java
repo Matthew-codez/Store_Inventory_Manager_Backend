@@ -10,8 +10,10 @@ import domain.Supplier;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class SupplierFormDialog extends JDialog {
+public class SupplierFormDialog extends JDialog implements ActionListener {
 
     private JTextField txtId;
     private JTextField txtName;
@@ -54,12 +56,21 @@ public class SupplierFormDialog extends JDialog {
         add(btnSave);
         add(btnCancel);
 
-        btnSave.addActionListener(e -> saveSupplier());
+        btnSave.addActionListener(this);
 
-        btnCancel.addActionListener(e -> dispose());
+        btnCancel.addActionListener(this);
 
         setSize(400, 200);
         setLocationRelativeTo(parent);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == btnSave) {
+            saveSupplier();
+        } else if (e.getSource() == btnCancel) {
+            dispose();
+        }
     }
 
     private void saveSupplier() {

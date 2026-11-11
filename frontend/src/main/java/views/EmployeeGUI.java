@@ -102,13 +102,20 @@ public class EmployeeGUI extends JFrame implements ActionListener {
         }.execute();
     }
 
+    private class RefreshTable implements Runnable {
+        @Override
+        public void run() {
+            loadEmployees();
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == btnRefresh) {
             loadEmployees();
 
         } else if (e.getSource() == btnAdd) {
-            new EmployeeFormDialog(this, client, this::loadEmployees).setVisible(true);
+            new EmployeeFormDialog(this, client, new RefreshTable()).setVisible(true);
 
         } else if (e.getSource() == btnDelete) {
             int row = table.getSelectedRow();

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Inventory {
     private Long inventoryId;
-    private Category category;
     private Product product;
     private Supplier supplier;
     private int quantityInStock;
@@ -22,12 +21,6 @@ public class Inventory {
 
     public void setInventoryId(Long inventoryId) {
         this.inventoryId = inventoryId; }
-
-    public Category getCategory() {
-        return category; }
-
-    public void setCategory(Category category) {
-        this.category = category; }
 
     public Product getProduct() {
         return product; }

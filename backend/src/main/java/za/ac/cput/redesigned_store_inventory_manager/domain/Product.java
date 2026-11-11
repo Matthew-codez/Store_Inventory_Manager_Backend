@@ -12,6 +12,7 @@ public class Product {
     @Id
     private String productId;
     private String productName;
+    private String category;
 
 
     public Product(){
@@ -20,6 +21,7 @@ public class Product {
     private Product(Builder builder){
         this.productId= builder.productId;
         this.productName=builder.productName;
+        this.category=builder.category;
 
     }
 
@@ -39,22 +41,33 @@ public class Product {
         this.productName = productName;
     }
 
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
 
     @Override
     public String toString() {
         return "Product{" +
                 "productId='" + productId + '\'' +
                 ", productName='" + productName + '\'' +
+                ", category='" + category + '\'' +
                 '}';
     }
 
     public static class Builder{
         private String productId;
         private String productName;
+        private String category;
 
         public Builder copy(Product product){
             this.productId=product.productId;
             this.productName=product.productName;
+            this.category=product.category;
             return this;
         }
 
@@ -64,6 +77,10 @@ public class Product {
         }
         public Builder setProductName(String productName){
             this.productName=productName;
+            return this;
+        }
+        public Builder setCategory(String category){
+            this.category=category;
             return this;
         }
         public Product build(){

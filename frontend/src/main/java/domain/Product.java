@@ -5,6 +5,7 @@ public class Product {
     private String productName;
     private String productDescription;
     private String productPrice;
+    private String category;
 
 
     public Product(){
@@ -36,6 +37,14 @@ public class Product {
 
     public void setProductDescription(String productDescription) {
         this.productDescription = productDescription;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public String getProductName() {

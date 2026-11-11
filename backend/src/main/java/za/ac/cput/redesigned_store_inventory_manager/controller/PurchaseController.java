@@ -1,6 +1,7 @@
 package za.ac.cput.redesigned_store_inventory_manager.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,22 +31,20 @@ public class PurchaseController {
     @PostMapping
     @Transactional
     public ResponseEntity<String> purchase(@RequestBody PurchaseRequest request, Authentication authentication) {
-        // Reject nonsense input: a negative quantity would otherwise ADD stock
-        // (stock >= -5 is true, and stock - (-5) increases it).
         if (request.inventoryId == null || request.quantity <= 0) {
-            return ResponseEntity.status(400).body("Quantity must be at least 1");
+            return ResponseEntity.badRequest().body("Quantity must be at least 1");
         }
-        // The buyer is whoever is logged in, never whatever the request body claims.
+
         String buyer = authentication.getName();
 
         int updated = inventoryRepository.decrementStock(request.inventoryId, request.quantity);
         if (updated == 0) {
-            return ResponseEntity.status(400).body("Not enough stock available");
+            return ResponseEntity.badRequest().body("Not enough stock available");
         }
 
         Optional<Inventory> invOpt = inventoryRepository.findById(request.inventoryId);
         if (invOpt.isEmpty()) {
-            return ResponseEntity.status(404).body("Item not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Item not found");
         }
         Inventory inv = invOpt.get();
         double total = inv.getUnitPrice() * request.quantity;

@@ -34,7 +34,10 @@ public class OrderController {
     @GetMapping("/{orderNum}")
     public ResponseEntity<Order> getOrderById(@PathVariable String orderNum){
         Optional<Order> order = orderService.findById(orderNum);
-        return order.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        if (order.isPresent()) {
+            return ResponseEntity.ok(order.get());
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping

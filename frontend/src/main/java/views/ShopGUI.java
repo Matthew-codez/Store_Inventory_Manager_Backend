@@ -5,12 +5,14 @@ import domain.Inventory;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ShopGUI extends JFrame {
+public class ShopGUI extends JFrame implements ActionListener {
 
     private ClientApp client;
     private String customerUsername;
@@ -19,6 +21,7 @@ public class ShopGUI extends JFrame {
     private List<Inventory> filteredInventory = new ArrayList<>();
 
     private JComboBox<String> comboCategory;
+    private JButton btnBuy, btnLogout;
     private DefaultTableModel tableModel;
     private JTable table;
     private JSpinner spinnerQuantity;
@@ -47,8 +50,8 @@ public class ShopGUI extends JFrame {
         JPanel bottom = new JPanel(new FlowLayout());
         bottom.add(new JLabel("Quantity:"));
         bottom.add(spinnerQuantity);
-        JButton btnBuy = new JButton("Buy");
-        JButton btnLogout = new JButton("Log out");
+        btnBuy = new JButton("Buy");
+        btnLogout = new JButton("Log out");
         bottom.add(btnBuy);
         bottom.add(btnLogout);
 
@@ -57,15 +60,26 @@ public class ShopGUI extends JFrame {
         add(new JScrollPane(table), BorderLayout.CENTER);
         add(bottom, BorderLayout.SOUTH);
 
-        comboCategory.addActionListener(e -> applyFilter());
-        btnBuy.addActionListener(e -> buySelected());
-        btnLogout.addActionListener(e -> client.logoutAndShowLogin());
+        comboCategory.addActionListener(this);
+        btnBuy.addActionListener(this);
+        btnLogout.addActionListener(this);
 
         setSize(700, 450);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         loadInventory();
         setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == comboCategory) {
+            applyFilter();
+        } else if (e.getSource() == btnBuy) {
+            buySelected();
+        } else if (e.getSource() == btnLogout) {
+            client.logoutAndShowLogin();
+        }
     }
 
     private void loadInventory() {
@@ -86,12 +100,24 @@ public class ShopGUI extends JFrame {
         }.execute();
     }
 
+    private String categoryOf(Inventory inv) {
+        if (inv.getProduct() == null) {
+            return null;
+        }
+        String category = inv.getProduct().getCategory();
+        if (category == null || category.isBlank()) {
+            return null;
+        }
+        return category;
+    }
+
     private void populateCategoryDropdown() {
         Set<String> categories = new LinkedHashSet<>();
         categories.add("All");
         for (Inventory inv : allInventory) {
-            if (inv.getCategory() != null && inv.getCategory().getName() != null) {
-                categories.add(inv.getCategory().getName());
+            String category = categoryOf(inv);
+            if (category != null) {
+                categories.add(category);
             }
         }
         String previouslySelected = (String) comboCategory.getSelectedItem();
@@ -106,7 +132,7 @@ public class ShopGUI extends JFrame {
         String selected = (String) comboCategory.getSelectedItem();
         filteredInventory = new ArrayList<>();
         for (Inventory inv : allInventory) {
-            String catName = inv.getCategory() != null ? inv.getCategory().getName() : null;
+            String catName = categoryOf(inv);
             if (selected == null || selected.equals("All") || selected.equals(catName)) {
                 filteredInventory.add(inv);
             }

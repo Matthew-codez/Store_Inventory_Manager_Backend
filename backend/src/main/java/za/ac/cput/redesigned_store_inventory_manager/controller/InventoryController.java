@@ -48,7 +48,10 @@ public class InventoryController {
     @GetMapping("/{id}")
     public ResponseEntity<Inventory> getInventoryById(@PathVariable Long id) {
         Optional<Inventory> inventory = inventoryService.findById(id);
-        return inventory.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        if (inventory.isPresent()) {
+            return ResponseEntity.ok(inventory.get());
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping
@@ -61,18 +64,30 @@ public class InventoryController {
 
         String productId = inventory.getProduct().getProductId().trim();
 
-        // Resolve the product if it already exists, otherwise register it -
-        // the Add Inventory form collects the product name for exactly this purpose.
-        Product product = productRepository.findById(productId)
-                .orElseGet(() -> {
-                    Product newProduct = new Product();
-                    newProduct.setProductId(productId);
-                    newProduct.setProductName(inventory.getProduct().getProductName());
-                    return productRepository.save(newProduct);
-                });
+        String category = null;
+        if (inventory.getProduct().getCategory() != null
+                && !inventory.getProduct().getCategory().isBlank()) {
+            category = inventory.getProduct().getCategory().trim();
+        }
 
-        // Resolve the supplier by ID. The supplier must already exist -
-        // it can be created on the Suppliers screen.
+        Product product;
+        Optional<Product> existingProduct = productRepository.findById(productId);
+        if (existingProduct.isPresent()) {
+            product = existingProduct.get();
+            // Only fill the category in if this product doesn't have one yet
+            boolean hasNoCategory = product.getCategory() == null || product.getCategory().isBlank();
+            if (category != null && hasNoCategory) {
+                product.setCategory(category);
+                product = productRepository.save(product);
+            }
+        } else {
+            Product newProduct = new Product();
+            newProduct.setProductId(productId);
+            newProduct.setProductName(inventory.getProduct().getProductName());
+            newProduct.setCategory(category);
+            product = productRepository.save(newProduct);
+        }
+
         Supplier supplier = null;
         if (inventory.getSupplier() != null
                 && inventory.getSupplier().getSupplierId() != null
@@ -98,7 +113,6 @@ public class InventoryController {
         Inventory resolvedInventory = new Inventory.Builder(inventory.getInventoryId())
                 .product(product)
                 .supplier(supplier)
-                .category(inventory.getCategory())
                 .quantityInStock(inventory.getQuantityInStock())
                 .unitPrice(inventory.getUnitPrice())
                 .location(inventory.getLocation())
@@ -124,12 +138,10 @@ public class InventoryController {
 
         Inventory existing = optionalExisting.get();
 
-        // Update inventory fields without creating a new Inventory object
         existing.setQuantityInStock(inventory.getQuantityInStock());
         existing.setUnitPrice(inventory.getUnitPrice());
         existing.setLocation(inventory.getLocation());
 
-        // Resolve the existing product instead of inserting a duplicate
         if (inventory.getProduct() != null
                 && inventory.getProduct().getProductId() != null) {
 
@@ -143,17 +155,20 @@ public class InventoryController {
 
             Product existingProduct = optionalProduct.get();
 
-            // Product name belongs to the Product record
             if (inventory.getProduct().getProductName() != null) {
                 existingProduct.setProductName(
                         inventory.getProduct().getProductName());
-                productRepository.save(existingProduct);
             }
+            if (inventory.getProduct().getCategory() != null
+                    && !inventory.getProduct().getCategory().isBlank()) {
+                existingProduct.setCategory(
+                        inventory.getProduct().getCategory().trim());
+            }
+            productRepository.save(existingProduct);
 
             existing.setProduct(existingProduct);
         }
 
-        // Reuse the existing supplier if one was supplied
         if (inventory.getSupplier() != null
                 && inventory.getSupplier().getSupplierId() != null
                 && !inventory.getSupplier().getSupplierId().isBlank()) {
@@ -171,7 +186,6 @@ public class InventoryController {
             existing.setSupplier(optionalSupplier.get());
         }
 
-        // Preserve the existing category to avoid inserting a duplicate category
         Inventory updated = inventoryService.save(existing);
 
         return ResponseEntity.ok(updated);

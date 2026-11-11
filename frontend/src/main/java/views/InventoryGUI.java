@@ -12,7 +12,7 @@ import java.util.List;
 
 
 /**
-    * InventoryGUI
+ * InventoryGUI
  * @author Jayden Avontuur
  */
 public class InventoryGUI extends JFrame implements ActionListener {
@@ -114,7 +114,7 @@ public class InventoryGUI extends JFrame implements ActionListener {
                                 inv.getInventoryId(),
                                 inv.getProduct() != null ? inv.getProduct().getProductId() : "",
                                 inv.getProduct() != null ? inv.getProduct().getProductName() : "",
-                                inv.getCategory() != null ? inv.getCategory().getName() : "",
+                                inv.getProduct() != null ? inv.getProduct().getCategory() : "",
                                 inv.getSupplier() != null ? inv.getSupplier().getSupplierId() : "",
                                 inv.getQuantityInStock(),
                                 inv.getUnitPrice(),
@@ -128,13 +128,20 @@ public class InventoryGUI extends JFrame implements ActionListener {
         }.execute();
     }
 
+    private class RefreshTable implements Runnable {
+        @Override
+        public void run() {
+            loadInventory();
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == btnRefresh) {
             loadInventory();
 
         } else if (e.getSource() == btnAdd) {
-            new InventoryFormDialog(this, client, this::loadInventory).setVisible(true);
+            new InventoryFormDialog(this, client, new RefreshTable()).setVisible(true);
 
         } else if (e.getSource() == btnUpdate) {
             int row = table.getSelectedRow();
@@ -151,11 +158,14 @@ public class InventoryGUI extends JFrame implements ActionListener {
             new SwingWorker<Inventory, Void>() {
                 @Override
                 protected Inventory doInBackground() throws Exception {
-                    return client.getAllInventory().stream()
-                            .filter(inv -> inventoryId.equals(inv.getInventoryId()))
-                            .findFirst()
-                            .orElseThrow(() ->
-                                    new Exception("Inventory item not found."));
+                    // Look through every item until we find the one with this ID
+                    List<Inventory> allItems = client.getAllInventory();
+                    for (Inventory inv : allItems) {
+                        if (inventoryId.equals(inv.getInventoryId())) {
+                            return inv;
+                        }
+                    }
+                    throw new Exception("Inventory item not found.");
                 }
 
                 @Override
@@ -166,7 +176,7 @@ public class InventoryGUI extends JFrame implements ActionListener {
                         new InventoryFormDialog(
                                 InventoryGUI.this,
                                 client,
-                                InventoryGUI.this::loadInventory,
+                                new RefreshTable(),
                                 inventoryId,
                                 selectedInventory
                         ).setVisible(true);
@@ -186,49 +196,48 @@ public class InventoryGUI extends JFrame implements ActionListener {
 
             }.execute();
         }else if (e.getSource() == btnDelete) {
-                int row = table.getSelectedRow();
-                if (row == -1) {
-                    JOptionPane.showMessageDialog(this, "Select a row first.");
-                    return;
-                }
+            int row = table.getSelectedRow();
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Select a row first.");
+                return;
+            }
             Long id = Long.valueOf(
                     tableModel.getValueAt(row, 0).toString()
             );
-                int confirm = JOptionPane.showConfirmDialog(this, "Delete this inventory item?", "Confirm", JOptionPane.YES_NO_OPTION);
-                if (confirm != JOptionPane.YES_OPTION) return;
+            int confirm = JOptionPane.showConfirmDialog(this, "Delete this inventory item?", "Confirm", JOptionPane.YES_NO_OPTION);
+            if (confirm != JOptionPane.YES_OPTION) return;
 
-                new SwingWorker<Void, Void>() {
-                    protected Void doInBackground() throws Exception {
-                        client.deleteInventory(id);
-                        return null;
+            new SwingWorker<Void, Void>() {
+                protected Void doInBackground() throws Exception {
+                    client.deleteInventory(id);
+                    return null;
+                }
+
+                protected void done() {
+                    try {
+                        get();
+                    } catch (Exception ex) {
+                        String message = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                        JOptionPane.showMessageDialog(InventoryGUI.this, message, "Error", JOptionPane.ERROR_MESSAGE);
                     }
+                    loadInventory();
+                }
+            }.execute();
 
-                    protected void done() {
-                        try {
-                            get();
-                        } catch (Exception ex) {
-                            String message = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
-                            JOptionPane.showMessageDialog(InventoryGUI.this, message, "Error", JOptionPane.ERROR_MESSAGE);
-                        }
-                        loadInventory();
-                    }
-                }.execute();
+        } else if (e.getSource() == btnOrders) {
+            new OrderGUI(client).setGUI();
 
-            } else if (e.getSource() == btnOrders) {
-                new OrderGUI(client).setGUI();
+        } else if (e.getSource() == btnSuppliers) {
+            new SupplierGUI(client).setGUI();
 
-            } else if (e.getSource() == btnSuppliers) {
-                new SupplierGUI(client).setGUI();
+        } else if (e.getSource() == btnCustomers) {
+            new CustomerGUI(client).setGUI();
 
-            } else if (e.getSource() == btnCustomers) {
-                new CustomerGUI(client).setGUI();
+        } else if (e.getSource() == btnEmployees) {
+            new EmployeeGUI(client).setGUI();
 
-            } else if (e.getSource() == btnEmployees) {
-                new EmployeeGUI(client).setGUI();
-
-            } else if (e.getSource() == btnLogout) {
-                client.logoutAndShowLogin();
-            }
+        } else if (e.getSource() == btnLogout) {
+            client.logoutAndShowLogin();
         }
     }
-
+}

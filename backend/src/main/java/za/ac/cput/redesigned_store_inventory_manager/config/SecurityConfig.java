@@ -8,6 +8,9 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
+import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -34,18 +37,43 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .headers(h -> h.frameOptions(f -> f.sameOrigin()))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/customer-auth/register").permitAll()
-                        .requestMatchers("/api/auth/login", "/api/customer-auth/login").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/products/**", "/api/inventory/**")
-                        .hasAnyRole("EMPLOYEE", "CUSTOMER")
-                        .requestMatchers("/api/purchase/**").hasAnyRole("EMPLOYEE", "CUSTOMER")
-                        .anyRequest().hasRole("EMPLOYEE"))
-                .httpBasic(Customizer.withDefaults());
+        http.csrf(new Customizer<CsrfConfigurer<HttpSecurity>>() {
+            @Override
+            public void customize(CsrfConfigurer<HttpSecurity> csrf) {
+                csrf.disable();
+            }
+        });
+
+        http.headers(new Customizer<HeadersConfigurer<HttpSecurity>>() {
+            @Override
+            public void customize(HeadersConfigurer<HttpSecurity> headers) {
+                headers.frameOptions(new Customizer<HeadersConfigurer<HttpSecurity>.FrameOptionsConfig>() {
+                    @Override
+                    public void customize(HeadersConfigurer<HttpSecurity>.FrameOptionsConfig frame) {
+                        frame.sameOrigin();
+                    }
+                });
+            }
+        });
+
+        http.authorizeHttpRequests(
+                new Customizer<AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry>() {
+                    @Override
+                    public void customize(
+                            AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+
+                        auth.requestMatchers("/h2-console/**").permitAll();
+                        auth.requestMatchers(HttpMethod.POST, "/api/customer-auth/register").permitAll();
+                        auth.requestMatchers("/api/auth/login", "/api/customer-auth/login").authenticated();
+                        auth.requestMatchers(HttpMethod.GET, "/api/v1/products/**", "/api/inventory/**")
+                                .hasAnyRole("EMPLOYEE", "CUSTOMER");
+                        auth.requestMatchers("/api/purchase/**").hasAnyRole("EMPLOYEE", "CUSTOMER");
+                        auth.anyRequest().hasRole("EMPLOYEE");
+                    }
+                });
+
+        http.httpBasic(Customizer.withDefaults());
+
         return http.build();
     }
 }

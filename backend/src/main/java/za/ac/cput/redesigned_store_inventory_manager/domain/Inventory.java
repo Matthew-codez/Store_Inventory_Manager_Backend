@@ -16,9 +16,6 @@ public class Inventory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long inventoryId;
 
-    @Embedded
-    private Category category;
-
     @ManyToOne
     private Product product;
 
@@ -33,7 +30,6 @@ public class Inventory {
 
     private Inventory(Builder builder) {
         this.inventoryId = builder.inventoryId;
-        this.category = builder.category;
         this.product = builder.product;
         this.supplier = builder.supplier;
         this.quantityInStock = builder.quantityInStock;
@@ -42,16 +38,11 @@ public class Inventory {
     }
 
     public Long getInventoryId() { return inventoryId; }
-    public Category getCategory() { return category; }
     public Product getProduct() { return product; }
     public Supplier getSupplier() { return supplier; }
     public int getQuantityInStock() { return quantityInStock; }
     public double getUnitPrice() { return unitPrice; }
     public String getLocation() { return location; }
-
-    public void setCategory(Category category) {
-        this.category = category;
-    }
 
     public void setProduct(Product product) {
         this.product = product;
@@ -77,7 +68,6 @@ public class Inventory {
     public String toString() {
         return "Inventory{" +
                 "inventoryId=" + inventoryId +
-                ", category=" + category +
                 ", product=" + product +
                 ", supplier=" + supplier +
                 ", quantityInStock=" + quantityInStock +
@@ -90,7 +80,6 @@ public class Inventory {
 
         private Long inventoryId;
         private Product product;
-        private Category category;
         private Supplier supplier;
         private int quantityInStock;
         private double unitPrice;
@@ -98,11 +87,6 @@ public class Inventory {
 
         public Builder(Long inventoryId) {
             this.inventoryId = inventoryId;
-        }
-
-        public Builder category(Category category) {
-            this.category = category;
-            return this;
         }
 
         public Builder product(Product product) {

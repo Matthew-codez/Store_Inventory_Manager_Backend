@@ -12,16 +12,11 @@ class InventoryFactoryTest {
     @Test
     public void createInventory() {
 
-        Product product = new Product();
-        Category category = CategoryFactory.createCategory(
-                "Electronics",
-                "Devices and gadgets"
-        );
+        Product product = ProductFactory.createProduct("P1", "Mouse", "Electronics");
         Supplier supplier = new Supplier();
 
         Inventory inventory = InventoryFactory.createInventory(
                 product,
-                category,
                 supplier,
                 50,
                 10,
@@ -30,19 +25,17 @@ class InventoryFactoryTest {
 
         assertNotNull(inventory);
         assertEquals(50, inventory.getQuantityInStock());
-        assertEquals("Electronics", inventory.getCategory().getName());
+        assertEquals("Electronics", inventory.getProduct().getCategory());
     }
 
     @Test
-   public void createInventory_InvalidQuantity() {
+    public void createInventory_InvalidQuantity() {
 
         Product product = new Product();
-        Category category = CategoryFactory.createCategory("Electronics", "Devices");
         Supplier supplier = new Supplier();
 
         Inventory inventory = InventoryFactory.createInventory(
                 product,
-                category,
                 supplier,
                 -5, // invalid
                 10,

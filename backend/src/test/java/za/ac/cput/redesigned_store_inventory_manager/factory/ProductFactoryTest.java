@@ -22,6 +22,14 @@ public class ProductFactoryTest {
     }
 
     @Test
+    void createProductWithCategory() {
+        Product product = ProductFactory.createProduct("1234", "Iphone17", "Electronics");
+
+        assertNotNull(product);
+        assertEquals("Electronics", product.getCategory());
+    }
+
+    @Test
     void testProductThatFails() {
         // a blank product ID is invalid, so the factory must refuse to create it
         Product product2 = ProductFactory.createProduct("", "Iphone17");

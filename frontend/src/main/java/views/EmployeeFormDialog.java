@@ -10,8 +10,10 @@ import domain.Employee;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class EmployeeFormDialog extends JDialog {
+public class EmployeeFormDialog extends JDialog implements ActionListener {
 
     private final JTextField txtUsername = new JTextField();
     private final JPasswordField txtPassword = new JPasswordField();
@@ -48,12 +50,21 @@ public class EmployeeFormDialog extends JDialog {
         add(form, BorderLayout.CENTER);
         add(buttons, BorderLayout.SOUTH);
 
-        btnSave.addActionListener(e -> saveEmployee());
-        btnCancel.addActionListener(e -> dispose());
+        btnSave.addActionListener(this);
+        btnCancel.addActionListener(this);
         getRootPane().setDefaultButton(btnSave);
 
         setSize(420, 220);
         setLocationRelativeTo(parent);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == btnSave) {
+            saveEmployee();
+        } else if (e.getSource() == btnCancel) {
+            dispose();
+        }
     }
 
     private void saveEmployee() {

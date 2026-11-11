@@ -115,6 +115,14 @@ public class SupplierGUI extends JFrame implements ActionListener {
         }.execute();
     }
 
+    // All run() does is reload the supplier table on this screen.
+    private class RefreshTable implements Runnable {
+        @Override
+        public void run() {
+            loadSuppliers();
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
 
@@ -127,7 +135,7 @@ public class SupplierGUI extends JFrame implements ActionListener {
             new SupplierFormDialog(
                     this,
                     client,
-                    this::loadSuppliers
+                    new RefreshTable()
             ).setVisible(true);
 
         } else if (e.getSource() == btnDelete) {

@@ -10,8 +10,10 @@ import domain.Customer;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class CustomerFormDialog extends JDialog {
+public class CustomerFormDialog extends JDialog implements ActionListener {
 
     private JTextField txtFirstName, txtSurname, txtEmail;
     private JButton btnSave, btnCancel;
@@ -46,9 +48,18 @@ public class CustomerFormDialog extends JDialog {
         this.setSize(400, 200);
         this.setLocationRelativeTo(parent);
 
-        btnSave.addActionListener(e -> save());
-        btnCancel.addActionListener(e -> dispose());
+        btnSave.addActionListener(this);
+        btnCancel.addActionListener(this);
         getRootPane().setDefaultButton(btnSave);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == btnSave) {
+            save();
+        } else if (e.getSource() == btnCancel) {
+            dispose();
+        }
     }
 
     private void save() {

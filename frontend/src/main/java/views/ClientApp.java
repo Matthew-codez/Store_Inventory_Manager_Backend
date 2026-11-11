@@ -50,11 +50,37 @@ public class ClientApp {
         return builder;
     }
 
+    // The server says the request worked.
+    private static boolean worked(HttpResponse<?> response) {
+        int code = response.statusCode();
+        return code >= 200 && code < 300;
+    }
+
+    // The server says the request failed.
+    private static boolean failed(HttpResponse<?> response) {
+        return response.statusCode() >= 400;
+    }
+
+    // The server crashed while handling the request.
+    private static boolean serverHadAnError(HttpResponse<?> response) {
+        return response.statusCode() >= 500;
+    }
+
+    // The server does not recognise your login.
+    private static boolean notLoggedIn(HttpResponse<?> response) {
+        return response.statusCode() == 401;
+    }
+
+    // You are logged in, but your role is not allowed to do this.
+    private static boolean notAllowed(HttpResponse<?> response) {
+        return response.statusCode() == 403;
+    }
+
     private void check(HttpResponse<?> response) throws Exception {
-        if (response.statusCode() == 401) {
+        if (notLoggedIn(response)) {
             throw new Exception("You are not logged in. Please log in again.");
         }
-        if (response.statusCode() == 403) {
+        if (notAllowed(response)) {
             throw new Exception("You don't have permission to do that.");
         }
     }
@@ -107,7 +133,7 @@ public class ClientApp {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             String returnedRole = response.body() == null ? "" : response.body().trim();
-            if (response.statusCode() == 200) {
+            if (worked(response)) {
                 if (expectedRole.equals(returnedRole)) {
                     authHeader = header;
                     role = returnedRole;
@@ -150,9 +176,8 @@ public class ClientApp {
         } catch (java.io.IOException e) {
             throw new Exception("Cannot reach the server. Make sure the backend is running on port 8080.");
         }
-        int code = response.statusCode();
-        if (code != 200 && code != 201) {
-            throw new Exception(serverMessage(response, "Sign up failed (server returned " + code + ")."));
+        if (!worked(response)) {
+            throw new Exception(serverMessage(response, "Sign up failed. Please try again."));
         }
     }
 
@@ -173,11 +198,11 @@ public class ClientApp {
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         check(response);
 
-        if (response.statusCode() == 500 && response.body().contains("Unique index or primary key violation")) {
+        if (serverHadAnError(response) && response.body().contains("Unique index or primary key violation")) {
             throw new Exception("That Product ID already exists. Please use a different Product ID.");
         }
-        if (response.statusCode() != 200 && response.statusCode() != 201) {
-            throw new Exception("Failed to add inventory item (server returned " + response.statusCode() + ").");
+        if (!worked(response)) {
+            throw new Exception("Failed to add inventory item. Please try again.");
         }
 
         return mapper.readValue(response.body(), Inventory.class);
@@ -196,11 +221,9 @@ public class ClientApp {
 
         check(response);
 
-        if (response.statusCode() != 200 && response.statusCode() != 201) {
+        if (!worked(response)) {
             throw new Exception(
-                    serverMessage(response,
-                            "Failed to update inventory (server returned "
-                                    + response.statusCode() + ")."));
+                    serverMessage(response, "Failed to update inventory. Please try again."));
         }
 
         if (response.body() == null || response.body().isBlank()) {
@@ -214,8 +237,8 @@ public class ClientApp {
         HttpRequest request = newRequest(INVENTORY_URL + "/" + id).DELETE().build();
         HttpResponse<Void> response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
         check(response);
-        if (response.statusCode() >= 400) {
-            throw new Exception("Could not delete the item (server returned " + response.statusCode() + ").");
+        if (failed(response)) {
+            throw new Exception("Could not delete the item. Please try again.");
         }
     }
 
@@ -231,10 +254,10 @@ public class ClientApp {
                 .build();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         check(response);
-        if (response.statusCode() != 200) {
+        if (!worked(response)) {
             String body = response.body() == null ? "" : response.body().trim();
             throw new Exception(body.isEmpty()
-                    ? "Purchase failed (server returned " + response.statusCode() + ")."
+                    ? "Purchase failed. Please try again."
                     : body);
         }
     }
@@ -327,8 +350,8 @@ public class ClientApp {
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         check(response);
 
-        if (response.statusCode() != 200 && response.statusCode() != 201) {
-            throw new Exception("Failed to add supplier. Server returned " + response.statusCode());
+        if (!worked(response)) {
+            throw new Exception("Failed to add supplier. Please try again.");
         }
         return mapper.readValue(response.body(), Supplier.class);
     }
@@ -338,9 +361,9 @@ public class ClientApp {
                 + java.net.URLEncoder.encode(id, StandardCharsets.UTF_8)).DELETE().build();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         check(response);
-        if (response.statusCode() >= 400) {
+        if (failed(response)) {
             throw new Exception(serverMessage(response,
-                    "Could not delete the supplier (server returned " + response.statusCode() + ")."));
+                    "Could not delete the supplier. Please try again."));
         }
     }
 
@@ -361,8 +384,8 @@ public class ClientApp {
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         check(response);
 
-        if (response.statusCode() != 200 && response.statusCode() != 201) {
-            throw new Exception(serverMessage(response, "Failed to add employee (server returned " + response.statusCode() + ")."));
+        if (!worked(response)) {
+            throw new Exception(serverMessage(response, "Failed to add employee. Please try again."));
         }
         return mapper.readValue(response.body(), Employee.class);
     }
@@ -371,8 +394,8 @@ public class ClientApp {
         HttpRequest request = newRequest(EMPLOYEE_URL + "/delete?id=" + id).DELETE().build();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         check(response);
-        if (response.statusCode() >= 400) {
-            throw new Exception(serverMessage(response, "Could not delete the employee (server returned " + response.statusCode() + ")."));
+        if (failed(response)) {
+            throw new Exception(serverMessage(response, "Could not delete the employee. Please try again."));
         }
     }
 
